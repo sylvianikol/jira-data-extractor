@@ -90,17 +90,21 @@ public class Main {
         return loginResponse;
     }
 
-    private static String parseJSessionId(String loginResponse) {
+    private static String parseJSessionId(String input) {
         String jSessionId = "";
 
         try {
+            JSONParser parser = new JSONParser();
+            JSONObject object = (JSONObject) parser.parse(input);
+            JSONObject session = (JSONObject) object.get("session");
+            jSessionId = (String) session.get("value");
 
         } catch (Exception ex) {
             System.out.println("Error in parseJSessionId(): " + ex.getMessage());
             jSessionId = "ERROR";
         }
 
-        System.out.println("jSessionId Response: ");
+        System.out.println("jSessionId: ");
         System.out.println(jSessionId);
         return jSessionId;
     }
