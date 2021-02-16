@@ -18,6 +18,9 @@ public class Main {
         String writeToFileOutput = "";
         String baseURL = "http://localhost:2990/jira/rest/";
         String loginURL = "auth/1/session";
+        String biExportURL = "getbusinessintelligenceexport/1.0/message";
+        String analysisStartDate = "15-FEB-21";
+        String analysisEndDate = "17-FEB-21";
         String username = "admin";
         String password = "admin";
         boolean errorsOccured = false;
@@ -33,7 +36,7 @@ public class Main {
         }
 
         if (!errorsOccured) {
-            jsonData = getJsonData();
+            jsonData = getJsonData(baseURL, biExportURL, jSessionId, analysisStartDate, analysisEndDate);
             if (jsonData.equals("ERROR")) { errorsOccured = true; }
         }
 
@@ -71,7 +74,7 @@ public class Main {
             outputStream.flush();
 
             if (connection.getResponseCode() == 200) {
-                bufferedReader = new BufferedReader(new InputStreamReader((connection.getInputStream())));
+                bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
                 while ((output = bufferedReader.readLine()) != null) {
                     loginResponse += output;
@@ -109,8 +112,39 @@ public class Main {
         return jSessionId;
     }
 
-    private static String getJsonData() {
+    private static String getJsonData(String baseURL, String biExportURL, String jSessionId,
+                                      String analysisStartDate, String analysisEndDate) {
         String jsonData = "";
+
+        try {
+//            URL url = new URL(baseURL + biExportURL +
+//                    "?startDate=" + analysisStartDate +
+//                    "&endDate=" + analysisEndDate);
+//            URL url = new URL(baseURL + "api/2/user" + "?username=admin");
+            URL url = new URL(baseURL + "api/2/issue/picker" + "?currentJQL=assignee%3Dadmin");
+            String cookie = "JSESSIONID=" + jSessionId;
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Cookie", cookie);
+
+            if (connection.getResponseCode() == 200) {
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String output = "";
+
+                while ((output = bufferedReader.readLine()) != null) {
+                    jsonData += output;
+                }
+
+                connection.disconnect();
+            }
+        } catch (Exception ex) {
+            System.out.println("Error in getJsonData(): " + ex.getMessage());
+            jsonData = "ERROR";
+        }
+
+        System.out.println("jsonData: ");
+        System.out.println(jsonData);
         return jsonData;
     }
 
